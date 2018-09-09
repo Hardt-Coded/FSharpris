@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2019
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpris.Domain", "FSharpris.Domain\FSharpris.Domain.fsproj", "{5D3471D8-001C-4640-8117-955EFA82755F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpris.Console", "FSharpris.Console\FSharpris.Console.fsproj", "{485C6F1E-3996-4D26-9E19-2BA651CADFFF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D3471D8-001C-4640-8117-955EFA82755F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D3471D8-001C-4640-8117-955EFA82755F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D3471D8-001C-4640-8117-955EFA82755F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D3471D8-001C-4640-8117-955EFA82755F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{485C6F1E-3996-4D26-9E19-2BA651CADFFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{485C6F1E-3996-4D26-9E19-2BA651CADFFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{485C6F1E-3996-4D26-9E19-2BA651CADFFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{485C6F1E-3996-4D26-9E19-2BA651CADFFF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {92BA05A2-21A6-4524-9330-8134D7298AD1}
+	EndGlobalSection
+EndGlobal
