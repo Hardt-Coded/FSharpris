@@ -31,7 +31,7 @@ module Program =
         match gamemodel.GameState with
         |New -> Console.WriteLine("New")
         |Running -> Console.WriteLine("Running")
-        |Stopped -> Console.WriteLine("Stopped")
+        |Lost -> Console.WriteLine("Stopped")
 
     
     let drawMatrix matrix =
@@ -125,7 +125,7 @@ module Program =
                 | StoppGame  -> return! loop (gamemodel |> stoppGame) (count + 1L)
                 | Nothing ->
                     return! loop (gamemodel |> innerGameCommandHandler (innerGameCmd())) (count + 1L)
-            | Stopped -> 
+            | Lost -> 
                 match gameCmd() with
                 | StartGame -> return! loop (gamemodel |> startGame) count
                 | StoppGame  -> return! loop gamemodel count
