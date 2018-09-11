@@ -19,7 +19,7 @@ module Domain =
 
     type FlattenFields = FlattenFields of int list
 
-    type GameState = New | Running | Stopped
+    type GameState = New | Running | Lost
 
     type GameModel = {
         GameState:GameState
@@ -245,15 +245,20 @@ module Domain =
     // not pure anymore      
     let nextInnerGameMove randomRotation randomBrick randomX gamemodel =
         match gamemodel.BrickState with
-        | NoBrick ->         
-            {gamemodel with BrickState = randomBrick() |> createBrickLayer (randomRotation()) (randomX()) 1}    
+        | NoBrick ->
+            let newBrick = randomBrick() |> createBrickLayer (randomRotation()) (randomX()) 1
+            // here check collision, if so the game ends
+            match newBrick |> checkCollision gamemodel.GameField with
+            | NoCollision -> {gamemodel with BrickState = newBrick} 
+            | Collision ->
+                {gamemodel with BrickState = NoBrick; GameState = Lost}    
         | Brick _ ->
             let nextMoveDown = gamemodel.BrickState |> moveBrick Down
             match nextMoveDown |> checkCollision gamemodel.GameField with
             | NoCollision -> {gamemodel with BrickState = nextMoveDown}
             | Collision ->
                 match gamemodel.BrickState with
-                | NoBrick -> {gamemodel with GameField = emptyGameField;GameState = Stopped}
+                | NoBrick -> {gamemodel with GameField = emptyGameField;GameState = Lost}
                 | Brick (_,_,_,_,matrix) ->
                     let mergedGamefield = gamemodel.GameField |> updateGameField matrix
                     {gamemodel with GameField = mergedGamefield; BrickState = NoBrick}
@@ -263,13 +268,13 @@ module Domain =
         match gamemodel.GameState with
         | New -> {gamemodel with GameState = Running; GameField = emptyGameField}
         | Running -> gamemodel
-        | Stopped -> {gamemodel with GameState = Running; GameField = emptyGameField}
+        | Lost -> {gamemodel with GameState = Running; GameField = emptyGameField}
 
     let stoppGame gamemodel =
         match gamemodel.GameState with
         | New -> gamemodel
-        | Running -> {gamemodel with GameState = Stopped; GameField = emptyGameField}
-        | Stopped -> gamemodel
+        | Running -> {gamemodel with GameState = Lost; GameField = emptyGameField}
+        | Lost -> gamemodel
 
     
     
