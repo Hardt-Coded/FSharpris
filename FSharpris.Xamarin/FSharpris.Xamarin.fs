@@ -144,7 +144,7 @@ module App =
                     orientation = StackOrientation.Vertical,
                     verticalOptions = LayoutOptions.Center,
                     children=[
-                        View.Label(text="You Lost !")
+                        View.Label(text="You Lost !",horizontalOptions = LayoutOptions.Center,fontSize=32)
                         View.Button(text="Start New Game!",command = (fun () -> dispatch StartGame))
                     ]
                 )
