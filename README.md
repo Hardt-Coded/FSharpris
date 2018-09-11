@@ -22,4 +22,4 @@ For every move and rotation I build a new BrickLayer.
 
 ### Changelog
 
-2018-09-11 Simple Fabulous (Xamarin.Elmish) Version added
+2018-09-11 Simple Fabulous (Xamarin.Elmish) Version added (currently slow!)
