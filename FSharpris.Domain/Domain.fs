@@ -2,8 +2,8 @@ namespace FSharpris
 
 module Domain =
 
-    let fieldWidth = 10
-    let fieldHeight = 16
+    let fieldWidth = 14
+    let fieldHeight = 20
 
     type BrickType = I | J | L | O | S | T | Z
     type Rotation = R0 | R90 | R180 | R270

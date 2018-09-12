@@ -47,7 +47,7 @@ module App =
     let init () = initGame(), Cmd.none
 
     let timerCmd = 
-        async { do! Async.Sleep 200
+        async { do! Async.Sleep 1
                 return IngameMoveDownTick }
         |> Cmd.ofAsyncMsg
 
@@ -66,13 +66,10 @@ module App =
     // render row with little decorations
     let renderRow dispatch index row = 
         [
-            
             for (idx,item) in row |> List.indexed do 
                 if item > 0 then 
-                    yield 
-                        View.BoxView(backgroundColor=Color.GreenYellow)
-                            .GridRow(index).GridColumn(idx)
-            
+                    yield View.BoxView(backgroundColor=fix (fun () ->Color.GreenYellow))
+                                .GridRow(index).GridColumn(idx)
         ]
         
     
@@ -96,7 +93,8 @@ module App =
                 (flattenGamefield, flattenBrickLayer)
                 ||> Helpers.orOperationOnFlattenFields
                 |> Helpers.unflatten
-            newMatrix |> renderMatrix dispatch
+            let result = newMatrix |> renderMatrix dispatch
+            result
             
 
     let view (model: GameModel) dispatch =
@@ -104,50 +102,55 @@ module App =
           content = 
             match model.GameState with
             | New -> 
-                View.StackLayout(
-                    orientation = StackOrientation.Vertical,
-                    verticalOptions = LayoutOptions.Center,
-                    children=[
-                        View.Label(text="FSharpris",horizontalOptions = LayoutOptions.Center,fontSize=32)
-                        View.Button(text="Start Game!",command = (fun () -> dispatch StartGame))
-                    ]
-                )
+                fix (fun () -> 
+                    View.StackLayout(
+                        orientation = StackOrientation.Vertical,
+                        verticalOptions = LayoutOptions.Center,
+                        children=[
+                            View.Label(text="FSharpris",horizontalOptions = LayoutOptions.Center,fontSize=32)
+                            View.Button(text="Start Game!",command = (fun () -> dispatch StartGame))
+                        ]
+                ))
             | Running ->
-                View.Grid(
-                    coldefs = [box "0.2*";box "0.6*";box "0.2*"],
-                    rowdefs = [box "0.1*";box "0.8*";box "0.1*"],
-                    backgroundColor = Color.DarkViolet,
-                    children = [
-                        yield View.Grid(
-                            coldefs = [for _ in [1..fieldWidth] do yield box "*"],
-                            rowdefs = [for _ in [1..fieldHeight] do yield box "*"],
-                            rowSpacing = 0.0,
-                            columnSpacing = 0.0,
-                            backgroundColor=Color.White,
-                            children = [                               
-                                // Game itself
-                                for x in model |> renderGame dispatch do
-                                    for y in x do
-                                        yield y                                
-                            ],
-                            gestureRecognizers=[View.TapGestureRecognizer(command=(fun () -> dispatch IngameRotate))]).GridRow(1).GridColumn(1)
-                        yield View.Grid(gestureRecognizers=[View.TapGestureRecognizer(command=(fun () -> dispatch IngameMoveLeft))]).GridRow(1).GridColumn(0)
-                        yield View.Grid(gestureRecognizers=[View.TapGestureRecognizer(command=(fun () -> dispatch IngameMoveRight))]).GridRow(1).GridColumn(2)
-                        yield View.Grid(gestureRecognizers=[View.TapGestureRecognizer(command=(fun () -> dispatch IngameMoveDown))]).GridRow(2).GridColumn(0).GridColumnSpan(3)
+                
+                    View.Grid(
+                        coldefs = fix (fun () ->[box "0.2*";box "0.6*";box "0.2*"]),
+                        rowdefs = fix (fun () ->[box "0.1*";box "0.8*";box "0.1*"]),
+                        backgroundColor = dependsOn() (fun model () ->Color.DarkViolet),
+                        children = [
+                            yield View.Grid(
+                                coldefs = fix (fun () -> [ for _ in [1..fieldWidth] do yield box "*"]),
+                                rowdefs = fix (fun () -> [for _ in [1..fieldHeight] do yield box "*"]),
+                                rowSpacing = fix (fun () -> 0.0),
+                                columnSpacing = fix (fun () -> 0.0),
+                                backgroundColor=fix (fun () -> Color.White),
+                                children = [                               
+                                    // Game itself
+                                     
+                                    for x in model |> renderGame dispatch do
+                                        for y in x do
+                                            yield y
+                                    
+                                ],
+                                gestureRecognizers=fix (fun () -> [View.TapGestureRecognizer(command=(fun () -> dispatch IngameRotate))])).GridRow(1).GridColumn(1)
+                            yield fix (fun () -> View.Grid(gestureRecognizers=[View.TapGestureRecognizer(command=(fun () -> dispatch IngameMoveLeft))]).GridRow(1).GridColumn(0))
+                            yield fix (fun () -> View.Grid(gestureRecognizers=[View.TapGestureRecognizer(command=(fun () -> dispatch IngameMoveRight))]).GridRow(1).GridColumn(2))
+                            yield fix (fun () -> View.Grid(gestureRecognizers=[View.TapGestureRecognizer(command=(fun () -> dispatch IngameMoveDown))]).GridRow(2).GridColumn(0).GridColumnSpan(3))
                         
-                    ]
+                        ]
                 )
                 
                     
             | Lost ->
-                View.StackLayout(
-                    orientation = StackOrientation.Vertical,
-                    verticalOptions = LayoutOptions.Center,
-                    children=[
-                        View.Label(text="You Lost !",horizontalOptions = LayoutOptions.Center,fontSize=32)
-                        View.Button(text="Start New Game!",command = (fun () -> dispatch StartGame))
-                    ]
-                )
+                fix (fun () -> 
+                    View.StackLayout(
+                        orientation = StackOrientation.Vertical,
+                        verticalOptions = LayoutOptions.Center,
+                        children=[
+                            View.Label(text="You Lost !",horizontalOptions = LayoutOptions.Center,fontSize=32)
+                            View.Button(text="Start New Game!",command = (fun () -> dispatch StartGame))
+                        ]
+                    ))
               )
 
     // Note, this declaration is needed if you enable LiveUpdate
