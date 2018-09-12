@@ -19,3 +19,7 @@ The Bricks itself are small 2D Lists. For every rotation and type I had build a 
 To render the small bricks into the Bricklayer, I add empty rows for ever y-coordinate minus the height of the current brick (the bricks have different heights per rotation), then I map the list of brick rows (Type: int list list) to a full row for the BrickLayer. For that I use the x-coordinate ( \[list of zeros] @ \[brickrow] @ \[rest to fullfill the fieldwidth] ). And than the rest of empty rows.
 
 For every move and rotation I build a new BrickLayer.
+
+### Changelog
+
+2018-09-11 Simple Fabulous (Xamarin.Elmish) Version added (currently slow!)
