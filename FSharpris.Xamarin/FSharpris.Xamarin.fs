@@ -63,32 +63,14 @@ module App =
     
     
         
-    //// render row with little decorations
-    //let renderRow dispatch index row = 
-    //    [
-    //        for (idx,item) in row |> List.indexed do 
-    //            if item > 0 then 
-    //                yield dependsOn (idx,index) (fun _ (idx,index) -> 
-    //                    View.BoxView(backgroundColor=fix (fun () ->Color.GreenYellow))
-    //                            .GridRow(index).GridColumn(idx))
-    //    ]
-        
-    
-    //let renderMatrix dispatch matrix = 
-    //    matrix
-    //    |> List.indexed
-    //    |> List.map (fun (i,row)-> dependsOn (i,row) (fun _ (i,row) -> row |> renderRow dispatch i))
-
+    // render row with little decorations
     let renderRow dispatch index row = 
         [
             for (idx,item) in row |> List.indexed do 
                 if item > 0 then 
-                    yield dependsOn (idx, index) (fun _ (idx, index) -> 
-                        View.Grid(backgroundColor = fix (fun () -> Color.DarkGreen),
-                            children = [
-                                View.BoxView(backgroundColor=fix (fun () ->Color.GreenYellow),margin=fix (fun ()-> 2.0))
-                            ]
-                        ).GridRow(index).GridColumn(idx))
+                    yield dependsOn (idx,index) (fun _ (idx,index) -> 
+                        View.BoxView(backgroundColor=fix (fun () ->Color.GreenYellow))
+                                .GridRow(index).GridColumn(idx))
         ]
         
     
@@ -96,6 +78,7 @@ module App =
         matrix
         |> List.indexed
         |> List.map (fun (i,row)-> dependsOn (i,row) (fun _ (i,row) -> row |> renderRow dispatch i))
+
 
     let renderGame dispatch (gamemodel: GameModel) =
         let gamefield = gamemodel.GameField
