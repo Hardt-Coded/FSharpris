@@ -13,31 +13,69 @@ module Program =
 
     let sharpLine = String.init (fieldWidth+8) (fun _ -> "#")
 
-    let rowToString row =
-        ("###|",row) 
-        ||> List.fold (fun state item ->
-            let ch = (if (item > 0) then "#" else " ")
-            sprintf "%s%s" state ch
-            )
-        |> sprintf "%s|###"
+    let stoneInColor color =
+            Console.BackgroundColor <- color
+            Console.Write(" ")
+            Console.BackgroundColor <- ConsoleColor.Black
+    
+    let renderStone i =
+        match i with            
+        | 1 -> stoneInColor ConsoleColor.Cyan
+        | 2 -> stoneInColor ConsoleColor.Blue
+        | 3 -> stoneInColor ConsoleColor.Magenta
+        | 4 -> stoneInColor ConsoleColor.Yellow
+        | 5 -> stoneInColor ConsoleColor.Green
+        | 6 -> stoneInColor ConsoleColor.White
+        | 7 -> stoneInColor ConsoleColor.Red
+        | _ -> stoneInColor ConsoleColor.Black
 
-    let drawTitle ()= 
-        Console.WriteLine(sharpLine)
+    let rowToString row =
+        
+        Console.Write("###|")
+        row |> List.iter (renderStone)
+        Console.WriteLine("|###")
+        
+
+    let drawTitle ()=         
         Console.WriteLine("FSharpris")
         Console.WriteLine(sharpLine)
+
+    let renderPreview gamemodel =
+        match gamemodel.PreviewNextBrick with
+        | NoPreviewNextBrick -> ()
+        | PreviewNextBrick (brick,rotation) ->
+            Console.WriteLine("Next Brick:")
+            let brick =
+                brick
+                |> createBrick rotation
+            let restLines = 4 - brick.Length
+            brick
+            |> List.iter (fun row -> 
+                row |> List.iter (renderStone)
+                [1..5] |> List.iter (fun _ -> stoneInColor ConsoleColor.Black)
+                Console.WriteLine()
+            )
+            // remove res lines
+            [1..restLines] |> List.iter (fun _ -> Console.WriteLine("        "))
     
     let drawState gamemodel =
         Console.Write("State: ")
         match gamemodel.GameState with
-        |New -> Console.WriteLine("New")
+        |New -> Console.WriteLine("New    ")
         |Running -> Console.WriteLine("Running")
-        |Lost -> Console.WriteLine("Stopped")
-
+        |Pause -> Console.WriteLine("Pause  ")
+        |Lost -> Console.WriteLine("Stopped")   
+        let (Level level) = gamemodel.Level
+        let (Score score) = gamemodel.Score        
+        Console.Write("Level: {0} ## ",level)
+        Console.Write("Score: {0} ## ",score)
+        Console.WriteLine("RemovedLines: {0}",gamemodel.CountRemovedLines)
+        renderPreview gamemodel
     
     let drawMatrix matrix =
         matrix
         |> List.iter (fun row ->
-                row |> rowToString |> Console.WriteLine
+                row |> rowToString
             )
 
 
@@ -77,7 +115,7 @@ module Program =
 
     let rnd = Random()
 
-    let randmomRotation () =
+    let randomRotation () =
         let r = rnd.Next(1,4)
         match r with
         | 1 -> R0
@@ -103,21 +141,23 @@ module Program =
 
     let gameLoop (gameCmd:unit->GameCommands) (innerGameCmd:unit->RunningGameCommands) gamemodel =
         let rec loop gamemodel count = async {
-            
+            let (Level levelInt) = gamemodel.Level
             gamemodel |> render
-            do! Async.Sleep 50
+            do! Async.Sleep (50 / (levelInt + 1))
             gamemodel |> render
             match gamemodel.GameState with
             | New -> 
                 match gameCmd() with
                 | StartGame -> return! loop (gamemodel |> startGame) count
-                | StoppGame  -> return! loop gamemodel count
+                | StoppGame  -> return! loop gamemodel count                
                 | Nothing -> return! loop gamemodel count
+            | Pause ->
+                return! loop (gamemodel |> innerGameCommandHandler (innerGameCmd())) (count + 1L)
             | Running ->
                 
                 let gamemodel = 
                     if (count % 10L = 0L || count = 0L) then
-                        gamemodel |> nextInnerGameMove randmomRotation randomBrick randomX
+                        gamemodel |> nextInnerGameMove gamemodel.Level randomRotation randomBrick randomX
                     else
                         gamemodel
                 match gameCmd() with
@@ -145,11 +185,12 @@ module Program =
         | 3 -> Rotate
         | _ -> DoNothing
     
-    let (|KeyA|KeyD|KeyS|Space|None|) keyInt = 
+    let (|KeyA|KeyD|KeyS|Space|KeyP|None|) keyInt = 
         if (ConsoleKey.A |> int = keyInt) then KeyA
         elif (ConsoleKey.D |> int = keyInt) then KeyD
         elif (ConsoleKey.S |> int = keyInt) then KeyS
         elif (ConsoleKey.Spacebar |> int = keyInt) then Space
+        elif (ConsoleKey.P |> int = keyInt) then KeyP
         else None
 
 
@@ -159,6 +200,7 @@ module Program =
             | KeyA -> MoveLeft
             | KeyD -> MoveRight
             | KeyS -> MoveDown
+            | KeyP -> TogglePause
             | Space -> Rotate
             | _ -> DoNothing
         
@@ -169,7 +211,7 @@ module Program =
     [<EntryPoint>]
     let main argv = 
         Console.Clear()
-        let gameModel = initGame()
+        let gameModel = initGame randomBrick randomRotation true
         
         gameModel |> gameLoop gameCommand keyboardInnerCommands
 
