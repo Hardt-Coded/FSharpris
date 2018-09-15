@@ -211,7 +211,7 @@ module Program =
     [<EntryPoint>]
     let main argv = 
         Console.Clear()
-        let gameModel = initGame randomBrick randomRotation true
+        let gameModel = initGame randomBrick randomRotation true 0
         
         gameModel |> gameLoop gameCommand keyboardInnerCommands
 

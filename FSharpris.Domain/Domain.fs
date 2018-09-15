@@ -2,8 +2,8 @@ namespace FSharpris
 
 module Domain =
 
-    let fieldWidth = 10
-    let fieldHeight = 18
+    let fieldWidth = 12
+    let fieldHeight = 22
     
 
     type BrickType = I | J | L | O | S | T | Z
@@ -50,6 +50,7 @@ module Domain =
         Level:Level
         Score:Score
         CountRemovedLines:int
+        StartingLevel:Level
     }
 
     type GameCommands =
@@ -78,6 +79,7 @@ module Domain =
         Level = Level 0
         Score = Score 0
         CountRemovedLines = 0
+        StartingLevel = Level 0
     }
 
     // Helper Split function
@@ -281,10 +283,10 @@ module Domain =
             brick |> createBrickLayer newRotation x y
 
 
-    let initGame randomBrick randomRotation previewBricks = 
+    let initGame randomBrick randomRotation previewBricks startingLevel = 
         match previewBricks with
         | false -> newGameModel
-        | true -> {newGameModel with PreviewNextBrick = PreviewNextBrick (randomBrick(),randomRotation()) }
+        | true -> {newGameModel with PreviewNextBrick = PreviewNextBrick (randomBrick(),randomRotation()); StartingLevel = Level startingLevel }
 
     let innerGameCommandHandler cmd gamemodel =
         
@@ -353,13 +355,14 @@ module Domain =
                 | Brick (_,_,_,_,matrix) ->
                     let (mergedGamefield,score,missingLineCount) = gamemodel.GameField |> updateGameField currentLevel matrix
                     let sumCountRemovedLines = gamemodel.CountRemovedLines + missingLineCount
+                    let level = [gamemodel.StartingLevel |> Level.unwrap;(sumCountRemovedLines / 10)] |> List.max
                     {
                         gamemodel with 
                             GameField = mergedGamefield
                             BrickState = NoBrick
                             Score = (Helpers.addScores gamemodel.Score score)
                             CountRemovedLines = sumCountRemovedLines
-                            Level = Level (sumCountRemovedLines / 10)
+                            Level = Level level
                     }
         
         

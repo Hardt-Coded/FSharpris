@@ -39,6 +39,7 @@ module App =
     type Msg = 
         | StartGame 
         | TogglePreviewBricks of bool
+        | SetStartLevel of int
         | IngameTogglePause
         | IngameMoveLeft 
         | IngameMoveRight
@@ -46,21 +47,28 @@ module App =
         | IngameRotate
         | IngameMoveDownTick
 
-    let init preview () = initGame randomBrick randomRotation preview, Cmd.none
+    let init preview startingLevel () = initGame randomBrick randomRotation preview startingLevel, Cmd.none
 
     let timerCmd model = 
-        async { do! Async.Sleep (500 / ((model.Level |> Level.unwrap) + 1))
-                return IngameMoveDownTick }
+        async { 
+            let level = [(model.Level |> Level.unwrap);24] |> List.min
+            let delay = [800 - (level * 33);16] |> List.max
+            do! Async.Sleep delay
+            return IngameMoveDownTick 
+        }
         |> Cmd.ofAsyncMsg
 
     let update msg model =
         match msg with
         | StartGame -> model |> startGame, (timerCmd model)
         | TogglePreviewBricks b -> 
+            let (Level level) = model.StartingLevel
             if b then
-                init true ()
+                
+                init true level ()
             else
-                init false ()
+                init false level ()
+        | SetStartLevel level -> {model with StartingLevel = Level level;Level = Level level}, Cmd.none
         | IngameTogglePause -> model |> innerGameCommandHandler TogglePause ,if model.GameState = Pause then (timerCmd model) else Cmd.none
         | IngameMoveLeft -> model |> innerGameCommandHandler MoveLeft ,Cmd.none
         | IngameMoveRight -> model |> innerGameCommandHandler MoveRight, Cmd.none
@@ -269,12 +277,14 @@ module App =
                         verticalOptions = LayoutOptions.Center,
                         children=[
                             yield View.Label(text="FSharpris",horizontalOptions = LayoutOptions.Center,fontSize=32)
-                            yield View.Label(text="Use Brick Preview",horizontalOptions = LayoutOptions.Center,fontSize=20)
+                            yield View.Label(text="Use Brick Preview:",horizontalOptions = LayoutOptions.Center,fontSize=20)
                             yield View.Switch(
                                 isToggled= (if model.PreviewNextBrick = NoPreviewNextBrick then false else true),
                                 horizontalOptions = LayoutOptions.Center,
                                 toggled = (fun on -> dispatch (TogglePreviewBricks on.Value))
                                 )
+                            yield View.Label(text=(sprintf "Start Level: %i" (model.StartingLevel |> Level.unwrap)),horizontalOptions = LayoutOptions.Center,fontSize=20)
+                            yield View.Slider(minimum = 0.0,maximum=24.0,value = (model.StartingLevel |> Level.unwrap |> float),valueChanged = (fun v -> dispatch (SetStartLevel (v.NewValue|>int))))
                             yield View.Button(text="Start Game!",command = (fun () -> dispatch StartGame))
                         ]
                 )
@@ -287,19 +297,21 @@ module App =
                         verticalOptions = LayoutOptions.Center,
                         children=[
                             yield View.Label(text="You Lost !",horizontalOptions = LayoutOptions.Center,fontSize=32)
-                            yield View.Label(text="Use Brick Preview",horizontalOptions = LayoutOptions.Center,fontSize=20)
+                            yield View.Label(text="Use Brick Preview:",horizontalOptions = LayoutOptions.Center,fontSize=20)
                             yield View.Switch(
                                 isToggled= (if model.PreviewNextBrick = NoPreviewNextBrick then false else true),
                                 horizontalOptions = LayoutOptions.Center,
                                 toggled = (fun on -> dispatch (TogglePreviewBricks on.Value))
                                 )
+                            yield View.Label(text=(sprintf "Start Level: %i" (model.StartingLevel |> Level.unwrap)),horizontalOptions = LayoutOptions.Center,fontSize=20)
+                            yield View.Slider(minimum = 0.0,maximum=24.0,value = (model.StartingLevel |> Level.unwrap |> float),valueChanged = (fun v -> dispatch (SetStartLevel (v.NewValue|>int))))
                             yield View.Button(text="Start New Game!",command = (fun () -> dispatch StartGame))
                         ]
                     )
               )
 
     // Note, this declaration is needed if you enable LiveUpdate
-    let program = Program.mkProgram (init true) update view
+    let program = Program.mkProgram (init true 0) update view
 
 type App () as app = 
     inherit Application ()
