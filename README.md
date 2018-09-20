@@ -22,5 +22,8 @@ For every move and rotation I build a new BrickLayer.
 
 ### Changelog
 
+2018-09-15 Add some Features: optional preview next brick, colors, points, level, pause mode
+
 2018-09-12 Some performance improvements for the fabulous version. Thanks alot to https://twitter.com/jindraivanek
+
 2018-09-11 Simple Fabulous (Xamarin.Elmish) Version added (currently slow!)
